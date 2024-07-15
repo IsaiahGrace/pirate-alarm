@@ -1,0 +1,9 @@
+[Unit]
+Description=Turn off st7789 backlight
+
+[Service]
+ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pirate-alarm/disable-backlight.py
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
