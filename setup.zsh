@@ -9,14 +9,16 @@ if ! cat /proc/cpuinfo | grep "Raspberry Pi"; then
     exit
 fi
 
+mkdir -p md5sums
+
 # Create the virtual environment
-if [[ ! -d "venv" || ! -f "requirements.md5sum" || $(md5sum requirements.txt) != $(cat requirements.md5sum) ]]; then
+if [[ ! -d "venv" || ! -f "md5sums/requirements.txt.md5sum" || $(md5sum requirements.txt) != $(cat md5sums/requirements.txt.md5sum) ]]; then
     virtualenv venv
     source venv/bin/activate
     pip install -r requirements.txt
     deactivate
+    md5sum requirements.txt > md5sums/requirements.txt.md5sum
 fi
-md5sum requirements.txt > requirements.md5sum
 
 # Create a symlink for the systemd units
 pushd systemd
@@ -25,8 +27,12 @@ for unit in *; do
     symlink=/etc/systemd/system/$unit
     target=/home/isaiah/repos/pirate-alarm/systemd/$unit
     if [[ ! -L $symlink ]]; then
-        sudo ln -s $target $symlink
+        sudo ln -sf $target $symlink
         updated=true
+    fi
+    if [[ ! -f "../md5sums/$unit.md5sum" || $(md5sum $unit) != $(cat ../md5sums/$unit.md5sum) ]]; then
+        updated=true
+        md5sum $unit > ../md5sums/$unit.md5sum
     fi
 done
 if $updated; then
