@@ -9,8 +9,6 @@ logger = logging.getLogger(__name__)
 class Screen:
     def __init__(self, **kwargs):
         logger.debug(f"Screen.__init__({kwargs})")
-        pr.init_window(240, 240, "pirate-alarm")
-        pr.set_target_fps(60)
         self.frames = queue.Queue()
         self.stop = threading.Event()
         self.backlight = threading.Event()
@@ -33,11 +31,16 @@ class Screen:
             self.backlight.clear()
 
     def main_loop(self):
+        pr.init_window(240, 240, "pirate-alarm")
+        pr.set_target_fps(60)
+
         while not self.stop.is_set() and not pr.window_should_close():
             pr.begin_drawing()
             pr.clear_background(pr.RAYWHITE)
             if not self.frames.empty():
-                image = self.frames.get()
-                logger.debug(image)
+                image_path = self.frames.get()
+                logger.debug(image_path)
+                texture = pr.load_texture(image_path)
+                pr.draw_texture(texture, 0, 0, pr.BLANK)
             pr.end_drawing()
         pr.close_window()
