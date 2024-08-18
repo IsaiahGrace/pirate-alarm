@@ -5,6 +5,8 @@ from rich.logging import RichHandler
 import logging
 import os
 import platform
+import socket
+import time
 
 # Import either the LCD screen or a raylib simulation of the screen
 if platform.machine() == "aarch64":
@@ -39,8 +41,11 @@ class Display:
             spi_speed_hz=80 * 1000 * 1000,
         )
 
-    def draw_image(self, image_path):
-        logger.debug(f"Display.draw_image({image_path})")
+    def draw_image(self, image_name):
+        return self.draw_image_path(os.path.abspath(f"../images/{image_name}"))
+
+    def draw_image_path(self, image_path):
+        logger.debug(f"Display.draw_image('{image_path}')")
         with Image.open(image_path) as image:
             if image.width != WIDTH or image.height != HEIGHT:
                 image = image.resize((WIDTH, HEIGHT))
@@ -57,13 +62,49 @@ class Server:
         self.display = display
         pass
 
+    def run(self):
+        logger.debug("Starting zmq display server.")
+
+
+def internet(host="8.8.8.8", port=53, timeout=3):
+    """
+    Host: 8.8.8.8 (google-public-dns-a.google.com)
+    OpenPort: 53/tcp
+    Service: domain (DNS/TCP)
+    """
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as ex:
+        logger.warn(ex)
+        return False
+
+
+def startup(display):
+    logger.debug("Displaying startup screens")
+    display.draw_image("WiFi_none.bmp")
+    while not internet():
+        display.draw_image("WiFi_wait.bmp")
+        time.sleep(1)
+        display.draw_image("WiFi_none.bmp")
+        time.sleep(1)
+    display.draw_image("WiFi_connected.bmp")
+    time.sleep(2)
+
 
 def main():
     logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
     logger.debug(f'platform.machine() = "{platform.machine()}"')
     display = Display()
     display.set_backlight(False)
-    display.draw_image("../images/bmp/WiFi_connected.bmp")
+
+    # Show the startup status screens
+    startup(display)
+
+    # Run the zmq display server
+    server = Server(display)
+    server.run()
 
 
 if __name__ == "__main__":
