@@ -34,13 +34,23 @@ class Screen:
         pr.init_window(240, 240, "pirate-alarm")
         pr.set_target_fps(60)
 
+        pr.begin_drawing()
+        pr.clear_background(pr.RAYWHITE)
+        pr.end_drawing()
+
+        textures = dict()
+
         while not self.stop.is_set() and not pr.window_should_close():
             pr.begin_drawing()
-            pr.clear_background(pr.RAYWHITE)
             if not self.frames.empty():
-                image_path = self.frames.get()
-                logger.debug(image_path)
-                texture = pr.load_texture(image_path)
-                pr.draw_texture(texture, 0, 0, pr.BLANK)
+                image = self.frames.get()
+                logger.debug(f'Drawing image: "{image.filename}"')
+                if image.filename not in textures:
+                    textures[image.filename] = pr.load_texture(image.filename)
+                pr.draw_texture(textures[image.filename], 0, 0, pr.WHITE)
+
+            if not self.backlight.is_set():
+                pr.clear_background(pr.BLACK)
+
             pr.end_drawing()
         pr.close_window()
