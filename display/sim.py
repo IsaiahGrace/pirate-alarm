@@ -12,6 +12,7 @@ class Screen:
         self.frames = queue.Queue()
         self.stop = threading.Event()
         self.backlight = threading.Event()
+        self.backlight.set()
         self.thread = threading.Thread(target=self.main_loop)
         self.thread.start()
 
