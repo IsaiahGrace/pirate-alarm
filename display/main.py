@@ -7,6 +7,7 @@ import os
 import platform
 import socket
 import time
+import zmq
 
 # Import either the LCD screen or a raylib simulation of the screen
 if platform.machine() == "aarch64":
@@ -50,6 +51,12 @@ class Display:
         if SCREEN_SIM:
             self.screen.close()
 
+    def stopped(self):
+        if SCREEN_SIM:
+            return self.screen.stopped()
+        else:
+            return False
+
     def draw_image(self, image_name):
         return self.draw_image_path(os.path.abspath(f"../images/{image_name}"))
 
@@ -69,10 +76,22 @@ class Display:
 class Server:
     def __init__(self, display):
         self.display = display
-        pass
+        self.context = zmq.Context()
 
     def run(self):
         logger.debug("Starting zmq display server.")
+        socket = self.context.socket(zmq.REP)
+        socket.bind("tcp://*:5555")
+        while not self.display.stopped():
+            if socket.poll(1000):
+                message = socket.recv()
+                logger.info(f'Received draw request for "{message}"')
+                if not os.path.exists(message):
+                    socket.send(b"File not found")
+                else:
+                    self.display.set_backlight(True)
+                    self.display.draw_image_path(message)
+                    socket.send(b"Done")
 
 
 def internet(host="8.8.8.8", port=53, timeout=3):

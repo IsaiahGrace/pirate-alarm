@@ -20,6 +20,9 @@ class Screen:
         self.stop.set()
         self.thread.join()
 
+    def stopped(self):
+        return self.stop.is_set()
+
     def display(self, image):
         logger.debug(f"Screen.display({image})")
         self.frames.put(image)
@@ -55,3 +58,4 @@ class Screen:
 
             pr.end_drawing()
         pr.close_window()
+        self.stop.set()
