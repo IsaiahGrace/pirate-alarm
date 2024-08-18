@@ -35,6 +35,7 @@ for unit in *; do
         md5sum $unit > ../md5sums/$unit.md5sum
     fi
 done
+
 if $updated; then
     sudo systemctl daemon-reload
     for unit in *; do

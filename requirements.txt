@@ -1,2 +1,4 @@
 pillow
+raylib
+rich
 st7789
