@@ -12,11 +12,13 @@ import time
 if platform.machine() == "aarch64":
     import st7789
 
+    SCREEN_SIM = False
     SCREEN_BACKEND = st7789.ST7789
     SCREEN_CS = st7789.BG_SPI_CS_FRONT
 else:
     import sim
 
+    SCREEN_SIM = True
     SCREEN_BACKEND = sim.Screen
     SCREEN_CS = None
 
@@ -40,6 +42,13 @@ class Display:
             backlight=13,
             spi_speed_hz=80 * 1000 * 1000,
         )
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if SCREEN_SIM:
+            self.screen.close()
 
     def draw_image(self, image_name):
         return self.draw_image_path(os.path.abspath(f"../images/{image_name}"))
@@ -96,15 +105,12 @@ def startup(display):
 def main():
     logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
     logger.debug(f'platform.machine() = "{platform.machine()}"')
-    display = Display()
-    display.set_backlight(False)
-
-    # Show the startup status screens
-    startup(display)
-
-    # Run the zmq display server
-    server = Server(display)
-    server.run()
+    with Display() as display:
+        display.set_backlight(True)
+        startup(display)
+        display.set_backlight(False)
+        server = Server(display)
+        server.run()
 
 
 if __name__ == "__main__":
