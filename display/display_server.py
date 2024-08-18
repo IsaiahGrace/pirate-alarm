@@ -5,24 +5,22 @@ from rich.logging import RichHandler
 import logging
 import os
 import platform
-import socket
 import time
 import zmq
 
 # Import either the LCD screen or a raylib simulation of the screen
-if platform.machine() == "aarch64":
-    import st7789
-
-    SCREEN_SIM = False
-    SCREEN_BACKEND = st7789.ST7789
-    SCREEN_CS = st7789.BG_SPI_CS_FRONT
-else:
+if platform.machine() == "x86_64":
     import sim
 
-    SCREEN_SIM = True
     SCREEN_BACKEND = sim.Screen
     SCREEN_CS = None
+    SCREEN_SIM = True
+else:
+    import st7789
 
+    SCREEN_BACKEND = st7789.ST7789
+    SCREEN_CS = st7789.BG_SPI_CS_FRONT
+    SCREEN_SIM = False
 
 logger = logging.getLogger(__name__)
 
@@ -77,59 +75,57 @@ class Server:
     def __init__(self, display):
         self.display = display
         self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.REP)
+        self.backlight = False
+        self.backlight_timeout = time.time()
+
+    def __enter__(self):
+        logger.debug("Starting zmq display server.")
+        self.socket.bind("tcp://*:5555")
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    def stopped(self):
+        return self.display.stopped()
+
+    def set_backlight(self, enabled):
+        self.display.set_backlight(enabled)
+        self.backlight = enabled
+        if enabled:
+            self.backlight_timeout = time.time()
 
     def run(self):
-        logger.debug("Starting zmq display server.")
-        socket = self.context.socket(zmq.REP)
-        socket.bind("tcp://*:5555")
-        while not self.display.stopped():
-            if socket.poll(1000):
-                message = socket.recv()
-                logger.info(f'Received draw request for "{message}"')
-                if not os.path.exists(message):
-                    socket.send(b"File not found")
-                else:
-                    self.display.set_backlight(True)
-                    self.display.draw_image_path(message)
-                    socket.send(b"Done")
+        self.set_backlight(False)
+        while not self.stopped():
+            if self.backlight and time.time() - self.backlight_timeout > 300:
+                self.set_backlight(False)
 
+            try:
+                self.handle_message()
+            except Exception as e:
+                logger.error(e)
 
-def internet(host="8.8.8.8", port=53, timeout=3):
-    """
-    Host: 8.8.8.8 (google-public-dns-a.google.com)
-    OpenPort: 53/tcp
-    Service: domain (DNS/TCP)
-    """
-    try:
-        socket.setdefaulttimeout(timeout)
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-        return True
-    except socket.error as ex:
-        logger.warn(ex)
-        return False
-
-
-def startup(display):
-    logger.debug("Displaying startup screens")
-    display.draw_image("WiFi_none.png")
-    while not internet():
-        display.draw_image("WiFi_wait.png")
-        time.sleep(1)
-        display.draw_image("WiFi_none.png")
-        time.sleep(1)
-    display.draw_image("WiFi_connected.png")
-    time.sleep(5)
+    def handle_message(self):
+        if self.socket.poll(1000):
+            message = self.socket.recv()
+            logger.info(f"Received draw request for {message}")
+            path = os.path.abspath(message)
+            if not os.path.exists(path):
+                self.socket.send(b"File not found")
+            else:
+                self.set_backlight(True)
+                self.display.draw_image_path(path)
+                self.socket.send(b"Done")
 
 
 def main():
     logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
     logger.debug(f'platform.machine() = "{platform.machine()}"')
     with Display() as display:
-        display.set_backlight(True)
-        startup(display)
-        display.set_backlight(False)
-        server = Server(display)
-        server.run()
+        with Server(display) as server:
+            server.run()
 
 
 if __name__ == "__main__":
