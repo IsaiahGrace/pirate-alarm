@@ -92,14 +92,14 @@ def internet(host="8.8.8.8", port=53, timeout=3):
 
 def startup(display):
     logger.debug("Displaying startup screens")
-    display.draw_image("WiFi_none.bmp")
+    display.draw_image("WiFi_none.png")
     while not internet():
-        display.draw_image("WiFi_wait.bmp")
+        display.draw_image("WiFi_wait.png")
         time.sleep(1)
-        display.draw_image("WiFi_none.bmp")
+        display.draw_image("WiFi_none.png")
         time.sleep(1)
-    display.draw_image("WiFi_connected.bmp")
-    time.sleep(2)
+    display.draw_image("WiFi_connected.png")
+    time.sleep(5)
 
 
 def main():
