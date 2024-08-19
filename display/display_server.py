@@ -9,7 +9,8 @@ import time
 import zmq
 
 # Import either the LCD screen or a raylib simulation of the screen
-if platform.machine() == "x86_64":
+machine = platform.machine()
+if machine == "x86_64" or machine == "AMD64":
     import sim
 
     SCREEN_BACKEND = sim.Screen
