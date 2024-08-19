@@ -1,28 +1,29 @@
+from PIL import Image
 from rich import print
 import logging
 import pyray as rl
 import queue
 import threading
+import os
 
 logger = logging.getLogger(__name__)
-
-
-class Vec2:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
 
 
 class Screen:
     def __init__(self, **kwargs):
         logger.debug(f"Screen.__init__({kwargs})")
-
-        self.frames = queue.Queue()
+        self.screen_update_path = os.path.abspath("./screen-update.png")
+        if os.path.exists(self.screen_update_path):
+            try:
+                os.remove(self.screen_update_path)
+            except:
+                pass
+        self.update = threading.Event()
         self.stop = threading.Event()
         self.backlight = threading.Event()
 
         self.backlight.set()
-        self.thread = threading.Thread(target=self.main_loop)
+        self.thread = threading.Thread(target=self.thread_main)
         self.thread.start()
 
     def close(self):
@@ -34,7 +35,9 @@ class Screen:
 
     def display(self, image):
         logger.debug(f"Screen.display({image})")
-        self.frames.put(image)
+        assert isinstance(image, Image.Image)
+        image.save(self.screen_update_path, format="png")
+        self.update.set()
 
     def set_backlight(self, enabled):
         logger.debug(f"Screen.set_backlight({enabled})")
@@ -42,6 +45,13 @@ class Screen:
             self.backlight.set()
         else:
             self.backlight.clear()
+        self.update.set()
+
+    def thread_main(self):
+        try:
+            self.main_loop()
+        finally:
+            self.stop.set()
 
     def main_loop(self):
         rl.set_config_flags(rl.FLAG_WINDOW_TRANSPARENT)
@@ -62,31 +72,23 @@ class Screen:
         window_texture = rl.load_texture_from_image(window_image)
 
         backlight_status = self.backlight.is_set()
-        update = False
 
         while not self.stop.is_set() and not rl.window_should_close():
             # Update the screen if we have a new frame to display
-            if not self.frames.empty():
-                frame = self.frames.get()
-                logger.debug(f'Drawing image: "{frame.filename}"')
-                image = rl.load_image(frame.filename)
-                rl.image_draw(screen_image, image, screen_rect, screen_rect, rl.WHITE)
-                update = True
+            if self.update.is_set():
+                self.update.clear()
+                if os.path.exists(self.screen_update_path):
+                    update_image = rl.load_image(self.screen_update_path)
+                    rl.image_draw(screen_image, update_image, screen_rect, screen_rect, rl.WHITE)
 
-            # Either draw the screen, or a black square if the backlight is off
-            if self.backlight.is_set():
-                rl.image_draw(window_image, screen_image, screen_rect, window_screen_rect, rl.WHITE)
-            else:
-                rl.image_draw_rectangle_rec(window_image, window_screen_rect, rl.BLACK)
+                # Either draw the screen, or a black square if the backlight is off
+                if self.backlight.is_set():
+                    rl.image_draw(window_image, screen_image, screen_rect, window_screen_rect, rl.WHITE)
+                else:
+                    rl.image_draw_rectangle_rec(window_image, window_screen_rect, rl.BLACK)
 
-            if backlight_status != self.backlight.is_set():
-                backlight_status = self.backlight.is_set()
-                update = True
-
-            if update:
                 rl.unload_texture(window_texture)
                 window_texture = rl.load_texture_from_image(window_image)
-                update = False
 
             rl.begin_drawing()
             rl.draw_texture(window_texture, 0, 0, rl.WHITE)
