@@ -31,7 +31,7 @@ class WifiMonitor:
     def initial_connection(self):
         while not self.test_internet():
             logger.debug("Waiting for connection...")
-            self.connection.draw_file("../images/WiFi_none.png")
+            self.connection.draw_file("../images/WiFi_disconnected.png")
             time.sleep(1)
             self.connection.draw_file("../images/WiFi_wait.png")
             time.sleep(1)
