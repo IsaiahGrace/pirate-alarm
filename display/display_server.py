@@ -117,8 +117,10 @@ class Server:
                 self.socket.send(b"File not found")
             else:
                 self.set_backlight(True)
-                self.display.draw_image_path(path)
-                self.socket.send(b"Done")
+                try:
+                    self.display.draw_image_path(path)
+                finally:
+                    self.socket.send(b"Done")
 
 
 def main():
