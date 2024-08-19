@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # Display properties
 HEIGHT = 240
 WIDTH = 240
+ICON_BAR_HEIGHT = 48
 
 
 class Display:

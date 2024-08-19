@@ -1,0 +1,8 @@
+ALARM_CHECK = "../images/icon_alarm_check.png"
+ALARM_NONE = "../images/icon_alarm_none.png"
+ALARM_NOTE = "../images/icon_alarm_note.png"
+ALARM_OFF = "../images/icon_alarm_off.png"
+ALARM_PLUS = "../images/icon_alarm_plus.png"
+WIFI_CONNECTED = "../images/icon_wifi_connected.png"
+WIFI_DISCONNECTED = "../images/icon_wifi_disconnected.png"
+WIFI_WAIT = "../images/icon_wifi_wait.png"
