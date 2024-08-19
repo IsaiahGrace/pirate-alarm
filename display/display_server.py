@@ -122,7 +122,6 @@ class Server:
 
 def main():
     logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
-    logger.debug(f'platform.machine() = "{platform.machine()}"')
     with Display() as display:
         with Server(display) as server:
             server.run()
