@@ -1,4 +1,5 @@
 from rich import print
+import json
 import os
 import sys
 import zmq
@@ -19,13 +20,24 @@ class Client:
     def connect(self):
         self.socket.connect("tcp://localhost:5555")
 
-    def draw_file(self, path):
-        self.socket.send(str.encode(path))
-        return self.socket.recv().decode("utf-8")
+    def send_command(self, command):
+        self.socket.send(str.encode(json.dumps(command)))
+        response = json.loads(self.socket.recv().decode("utf-8"))
+        if response["response"] == "exception":
+            raise RuntimeError(response["name"], response["text"])
+
+    def draw_icon(self, icon):
+        return self.send_command({"command": "draw_icon", "icon": icon})
+
+    def draw_image(self, relative_path):
+        return self.send_command({"command": "draw_image", "relative_path": relative_path})
+
+    def draw_icon_bar(self, red, green, blue, alpha):
+        return self.send_command({"command": "draw_icon_bar", "r": red, "g": green, "b": blue, "a": alpha})
 
 
 if __name__ == "__main__":
     path = sys.argv[1]
     client = Client()
     client.connect()
-    client.draw_file(path)
+    client.draw_image(path)

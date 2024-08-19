@@ -4,6 +4,7 @@ import client
 import logging
 import socket
 import time
+import icons
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +26,16 @@ class WifiMonitor:
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
             return True
         except socket.error as ex:
-            logger.warn(ex)
+            logger.warning(ex)
             return False
 
     def initial_connection(self):
         while not self.test_internet():
             logger.debug("Waiting for connection...")
-            self.connection.draw_file("../images/WiFi_disconnected.png")
+            self.connection.draw_icon(icons.WIFI_DISCONNECTED)
             time.sleep(1)
-            self.connection.draw_file("../images/WiFi_wait.png")
+            self.connection.draw_icon(icons.WIFI_WAIT)
             time.sleep(1)
-        self.connection.draw_file("../images/WiFi_connected.png")
         logger.debug("Initial connection")
 
     def run(self):
@@ -43,12 +43,12 @@ class WifiMonitor:
         while True:
             if self.test_internet():
                 logger.debug("Connected")
-                self.connection.draw_file("../images/WiFi_connected.png")
+                self.connection.draw_icon(icons.WIFI_CONNECTED)
                 while self.test_internet():
                     time.sleep(60)
             else:
                 logger.debug("Disconnected")
-                self.connection.draw_file("../images/WiFi_disconnected.png")
+                self.connection.draw_icon(icons.WIFI_DISCONNECTED)
                 time.sleep(10)
 
 

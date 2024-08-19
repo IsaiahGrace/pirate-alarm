@@ -34,10 +34,11 @@ class Screen:
         return self.stop.is_set()
 
     def display(self, image):
-        logger.debug(f"Screen.display({image})")
         assert isinstance(image, Image.Image)
         image.save(self.screen_update_path, format="png")
         self.update.set()
+        while self.update.is_set():
+            pass
 
     def set_backlight(self, enabled):
         logger.debug(f"Screen.set_backlight({enabled})")
@@ -76,7 +77,6 @@ class Screen:
         while not self.stop.is_set() and not rl.window_should_close():
             # Update the screen if we have a new frame to display
             if self.update.is_set():
-                self.update.clear()
                 if os.path.exists(self.screen_update_path):
                     update_image = rl.load_image(self.screen_update_path)
                     rl.image_draw(screen_image, update_image, screen_rect, screen_rect, rl.WHITE)
@@ -89,6 +89,7 @@ class Screen:
 
                 rl.unload_texture(window_texture)
                 window_texture = rl.load_texture_from_image(window_image)
+                self.update.clear()
 
             rl.begin_drawing()
             rl.draw_texture(window_texture, 0, 0, rl.WHITE)
