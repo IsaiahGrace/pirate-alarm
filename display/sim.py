@@ -1,5 +1,4 @@
 from rich import print
-import copy
 import logging
 import pyray as rl
 import queue
@@ -17,10 +16,6 @@ class Vec2:
 class Screen:
     def __init__(self, **kwargs):
         logger.debug(f"Screen.__init__({kwargs})")
-        self.window_position = Vec2(0, 0)
-        self.mouse_position = Vec2(0, 0)
-        self.pan_offset = self.mouse_position
-        self.drag_window = False
 
         self.frames = queue.Queue()
         self.stop = threading.Event()
@@ -48,42 +43,12 @@ class Screen:
         else:
             self.backlight.clear()
 
-    def update_window_position(self):
-        mp = rl.get_mouse_position()
-        self.mouse_position.x = mp.x
-        self.mouse_position.y = mp.y
-
-        if rl.is_mouse_button_pressed(rl.MOUSE_LEFT_BUTTON) and not self.drag_window:
-            logger.debug("Start dragging window")
-            self.drag_window = True
-            self.pan_offset = copy.copy(self.mouse_position)
-        # if (CheckCollisionPointRec(mousePosition, (Rectangle){ 0, 0, screenWidth, 20 }))
-        #     {
-        #         dragWindow = true;
-        #         panOffset = mousePosition;
-        #     }
-        # }
-
-        if self.drag_window:
-            self.window_position.x += self.mouse_position.x - self.pan_offset.x
-            self.window_position.y += self.mouse_position.y - self.pan_offset.y
-            rl.set_window_position(int(self.window_position.x), int(self.window_position.y))
-
-            if rl.is_mouse_button_released(rl.MOUSE_LEFT_BUTTON):
-                logger.debug("Stop dragging window")
-                self.drag_window = False
-
     def main_loop(self):
         rl.set_config_flags(rl.FLAG_WINDOW_TRANSPARENT)
         rl.init_window(700, 343, "pirate-alarm simulator")
         rl.set_target_fps(60)
         rl.set_window_state(rl.FLAG_WINDOW_UNDECORATED)
         rl.clear_background(rl.BLANK)
-
-        monitor = rl.get_current_monitor()
-        self.window_position.x = (rl.get_monitor_width(monitor) / 2) - (700 / 2)
-        self.window_position.y = (rl.get_monitor_height(monitor) / 2) - (343 / 2)
-        rl.set_window_position(int(self.window_position.x), int(self.window_position.y))
 
         window_image = rl.gen_image_color(700, 343, rl.BLANK)
         screen_image = rl.gen_image_color(240, 240, rl.BLACK)
@@ -100,8 +65,6 @@ class Screen:
         update = False
 
         while not self.stop.is_set() and not rl.window_should_close():
-            self.update_window_position()
-
             # Update the screen if we have a new frame to display
             if not self.frames.empty():
                 frame = self.frames.get()
