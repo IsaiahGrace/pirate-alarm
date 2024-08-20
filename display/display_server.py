@@ -1,4 +1,4 @@
-from PIL import Image  # , ImageDraw
+from PIL import Image, ImageColor
 from rich import print
 from rich.logging import RichHandler
 import json
@@ -88,9 +88,10 @@ class Compositor:
         self.backlight = threading.Event()
         self.stop = threading.Event()
         self.active_icons = dict()
-        self.icon_bar_color = Color(0, 0, 255, 128)
+        self.icon_bar_color = Color(86, 142, 215, 200)
         self.icon_mask = Image.open(os.path.abspath("../images/icon_bar_mask.png"))
-        self.image = Image.new("RGBA", (WIDTH, HEIGHT))
+        self.icon_bar = Image.new("RGBA", (WIDTH, HEIGHT))
+        self.background = Image.new("RGBA", (WIDTH, HEIGHT))
 
     def __enter__(self):
         self.thread = threading.Thread(target=self.thread_main)
@@ -145,12 +146,13 @@ class Compositor:
         self.redraw_icons()
 
     def redraw_icons(self):
-        icon_bar = Image.new("RGBA", (WIDTH, HEIGHT), str(self.icon_bar_color))
+        icon_bar_bg = Image.new("RGBA", (WIDTH, HEIGHT), str(self.icon_bar_color))
+        self.icon_bar = Image.new("RGBA", (WIDTH, HEIGHT))
+        self.icon_bar.paste(icon_bar_bg, mask=self.icon_mask)
         for category, symbol in self.active_icons.items():
             path = os.path.abspath(f"../images/icon_{category}_{symbol}.png")
             with Image.open(path) as icon_image:
-                icon_bar.paste(icon_image)
-        self.image.paste(icon_bar, mask=self.icon_mask)
+                self.icon_bar.paste(icon_image, mask=icon_image)
         self.redraw()
 
     def draw_image(self, image_path):
@@ -159,12 +161,12 @@ class Compositor:
             if new_image.width != WIDTH or new_image.height != HEIGHT:
                 new_image = new_image.resize((WIDTH, HEIGHT))
                 logger.debug(f"Image resized from ({new_image.width},{new_image.height}) to ({WIDTH},{HEIGHT})")
-            self.image.paste(new_image)
+            self.background.paste(new_image)
         self.redraw()
 
     def redraw(self):
         self.backlight.set()
-        self.display.display(self.image)
+        self.display.display(Image.alpha_composite(self.background, self.icon_bar))
 
 
 class Server:

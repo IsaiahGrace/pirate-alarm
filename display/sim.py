@@ -19,6 +19,7 @@ class Screen:
             except:
                 pass
         self.update = threading.Event()
+        self.update_done = threading.Event()
         self.stop = threading.Event()
         self.backlight = threading.Event()
 
@@ -36,9 +37,10 @@ class Screen:
     def display(self, image):
         assert isinstance(image, Image.Image)
         image.save(self.screen_update_path, format="png")
+        self.update_done.clear()
         self.update.set()
-        while self.update.is_set():
-            pass
+        if not self.update_done.wait(1):
+            self.stop.set()
 
     def set_backlight(self, enabled):
         logger.debug(f"Screen.set_backlight({enabled})")
@@ -90,6 +92,7 @@ class Screen:
                 rl.unload_texture(window_texture)
                 window_texture = rl.load_texture_from_image(window_image)
                 self.update.clear()
+                self.update_done.set()
 
             rl.begin_drawing()
             rl.draw_texture(window_texture, 0, 0, rl.WHITE)
