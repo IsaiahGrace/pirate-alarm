@@ -32,8 +32,8 @@ class Client:
     def draw_image(self, relative_path):
         return self.send_command({"command": "draw_image", "relative_path": relative_path})
 
-    def draw_icon_bar(self, red, green, blue, alpha):
-        return self.send_command({"command": "draw_icon_bar", "r": red, "g": green, "b": blue, "a": alpha})
+    def icon_bar_color(self, red, green, blue, alpha):
+        return self.send_command({"command": "icon_bar_color", "r": red, "g": green, "b": blue, "a": alpha})
 
 
 if __name__ == "__main__":

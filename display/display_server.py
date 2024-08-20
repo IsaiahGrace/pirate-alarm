@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image  # , ImageDraw
 from rich import print
 from rich.logging import RichHandler
 import json
@@ -7,6 +7,7 @@ import os
 import platform
 import time
 import zmq
+import threading
 
 # Import either the LCD screen or a raylib simulation of the screen
 machine = platform.machine()
@@ -57,34 +58,66 @@ class Display:
         else:
             return False
 
-    def draw_image(self, image_name):
-        return self.draw_image_path(os.path.abspath(f"../images/{image_name}"))
-
-    def draw_image_path(self, image_path):
-        logger.debug(f"Display.draw_image('{image_path}')")
-        with Image.open(image_path) as image:
-            if image.width != WIDTH or image.height != HEIGHT:
-                image = image.resize((WIDTH, HEIGHT))
-                logger.debug(f"Image resized from ({image.width},{image.height}) to ({WIDTH},{HEIGHT})")
-            self.screen.display(image)
+    def display(self, image):
+        self.screen.display(image)
 
     def set_backlight(self, enabled):
         logger.debug(f"Display.set_backlight({enabled})")
         self.screen.set_backlight(enabled)
 
 
-class Server:
+class Compositor:
     def __init__(self, display):
         self.display = display
+        self.backlight = threading.Event()
+        self.active_icons = dict()
+        self.icon_bar_color = (0, 0, 0, 255)
+
+    def __enter__(self):
+        self.thread = threading.Thread(target=self.thread_main)
+        self.thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
+
+    def stopped(self):
+        return display.stopped()
+
+    def draw_icon(self, icon):
+        pass
+
+    def clear_icon(self, icon):
+        pass
+
+    def icon_bar_color(self, r, g, b, a):
+        pass
+
+    def backlight_tread(self):
+        pass
+
+    def draw_image(self, image_path):
+        logger.debug(f"Display.draw_image('{image_path}')")
+        with Image.open(image_path) as image:
+            if image.width != WIDTH or image.height != HEIGHT:
+                image = image.resize((WIDTH, HEIGHT))
+                logger.debug(f"Image resized from ({image.width},{image.height}) to ({WIDTH},{HEIGHT})")
+            self.display.draw_image(image)
+
+
+class Server:
+    def __init__(self, compositor):
+        self.compositor = compositor
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REP)
         self.backlight = False
         self.backlight_timeout = time.time()
 
         self.commands_schema = {
+            "clear_icon": (self.cmd_clear_icon, {"icon": str}),
             "draw_icon": (self.cmd_draw_icon, {"icon": str}),
+            "icon_bar_color": (self.cmd_icon_bar_color, {"r": int, "g": int, "b": int, "a": int}),
             "draw_image": (self.cmd_draw_image, {"relative_path": str}),
-            "draw_icon_bar": (self.cmd_draw_icon_bar, {"r": int, "g": int, "b": int, "a": int}),
         }
 
     def __enter__(self):
@@ -123,24 +156,12 @@ class Server:
         self.socket.send(str.encode(json.dumps({"response": "ok"})))
 
     def stopped(self):
-        return self.display.stopped()
-
-    def set_backlight(self, enabled):
-        self.display.set_backlight(enabled)
-        self.backlight = enabled
-        if enabled:
-            self.backlight_timeout = time.time()
+        return self.compositor.stopped()
 
     def run(self):
-        self.set_backlight(False)
         while not self.stopped():
-            if self.backlight and time.time() - self.backlight_timeout > 300:
-                self.set_backlight(False)
-            try:
-                if self.socket.poll(1000):
-                    self.handle_message(self.socket.recv())
-            except Exception as e:
-                logger.exception("Display server main loop")
+            if self.socket.poll(1000):
+                self.handle_message(self.socket.recv())
 
     def handle_message(self, message):
         logger.info(message)
@@ -155,26 +176,26 @@ class Server:
             self.respond_ok()
 
     def cmd_draw_icon(self, cmd):
-        icon = os.path.abspath(cmd["icon"])
-        self.set_backlight(True)
-        icon_bar = os.path.abspath("../images/icon_bar_black.png")
-        self.display.draw_image_path(icon_bar)
-        self.display.draw_image_path(icon)
+        self.compositor.draw_icon(cmd["icon"])
+
+    def cmd_clear_icon(self, cmd):
+        self.compositor.clear_icon(cmd["icon"])
 
     def cmd_draw_image(self, cmd):
-        icon = os.path.abspath(cmd["relative_path"])
-        self.set_backlight(True)
-        self.display.draw_image_path(icon)
+        image = os.path.abspath(cmd["relative_path"])
+        assert os.path.exists(image)
+        self.display.draw_image(image)
 
-    def cmd_draw_icon_bar(self, cmd):
-        raise NotImplementedError("Sorry, not yet!")
+    def cmd_icon_bar_color(self, cmd):
+        self.compositor.icon_bar_color(cmd["r"], cmd["g"], cmd["b"], cmd["a"])
 
 
 def main():
     logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
     with Display() as display:
-        with Server(display) as server:
-            server.run()
+        with Compositor(display) as compositor:
+            with Server(compositor) as server:
+                server.run()
 
 
 if __name__ == "__main__":
