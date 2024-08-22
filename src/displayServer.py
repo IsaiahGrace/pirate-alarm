@@ -8,6 +8,7 @@ import platform
 import threading
 import time
 import zmq
+import zmqNet
 
 # Import either the LCD screen or a raylib simulation of the screen
 machine = platform.machine()
@@ -188,7 +189,7 @@ class Server:
 
     def __enter__(self):
         logger.debug("Starting zmq display server.")
-        self.socket.bind("tcp://*:5555")
+        self.socket.bind(zmqNet.DISPLAY_CLIENT_FILTER)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):

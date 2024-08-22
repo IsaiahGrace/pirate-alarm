@@ -1,0 +1,2 @@
+DISPLAY_SERVER_ADDR = "tcp://localhost:5555"
+DISPLAY_CLIENT_FILTER = "tcp://*:5555"

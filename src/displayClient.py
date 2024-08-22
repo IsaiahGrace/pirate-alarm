@@ -3,6 +3,7 @@ import json
 import os
 import sys
 import zmq
+import zmqNet
 
 
 class DisplayClient:
@@ -18,7 +19,7 @@ class DisplayClient:
         pass
 
     def connect(self):
-        self.socket.connect("tcp://localhost:5555")
+        self.socket.connect(zmqNet.DISPLAY_SERVER_ADDR)
 
     def send_command(self, command):
         self.socket.send(str.encode(json.dumps(command)))

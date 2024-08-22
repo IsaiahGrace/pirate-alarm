@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 class WifiMonitor:
     def __init__(self):
-        self.connection = displayClient.DisplayClient()
-        self.connection.connect()
+        self.display = displayClient.DisplayClient()
+        self.display.connect()
 
     def test_internet(self, host="8.8.8.8", port=53, timeout=3):
         """
@@ -32,9 +32,9 @@ class WifiMonitor:
     def initial_connection(self):
         while not self.test_internet():
             logger.debug("Waiting for connection...")
-            self.connection.draw_icon(icons.WIFI_DISCONNECTED)
+            self.display.draw_icon(icons.WIFI_DISCONNECTED)
             time.sleep(1)
-            self.connection.draw_icon(icons.WIFI_WAIT)
+            self.display.draw_icon(icons.WIFI_WAIT)
             time.sleep(1)
         logger.debug("Initial connection")
 
@@ -43,12 +43,12 @@ class WifiMonitor:
         while True:
             if self.test_internet():
                 logger.debug("Connected")
-                self.connection.draw_icon(icons.WIFI_CONNECTED)
+                self.display.draw_icon(icons.WIFI_CONNECTED)
                 while self.test_internet():
                     time.sleep(60)
             else:
                 logger.debug("Disconnected")
-                self.connection.draw_icon(icons.WIFI_DISCONNECTED)
+                self.display.draw_icon(icons.WIFI_DISCONNECTED)
                 time.sleep(10)
 
 
