@@ -5,16 +5,16 @@ import json
 import logging
 import os
 import platform
+import threading
 import time
 import zmq
-import threading
 
 # Import either the LCD screen or a raylib simulation of the screen
 machine = platform.machine()
 if machine == "x86_64" or machine == "AMD64":
-    import sim
+    import screenSim
 
-    SCREEN_BACKEND = sim.Screen
+    SCREEN_BACKEND = screenSim.Screen
     SCREEN_CS = None
     SCREEN_SIM = True
 else:

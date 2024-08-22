@@ -1,6 +1,6 @@
 from rich import print
 from rich.logging import RichHandler
-import client
+import displayClient
 import logging
 import socket
 import time
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class WifiMonitor:
     def __init__(self):
-        self.connection = client.Client()
+        self.connection = displayClient.DisplayClient()
         self.connection.connect()
 
     def test_internet(self, host="8.8.8.8", port=53, timeout=3):

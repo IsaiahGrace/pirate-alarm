@@ -5,7 +5,7 @@ import sys
 import zmq
 
 
-class Client:
+class DisplayClient:
     def __init__(self):
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.REQ)
@@ -38,6 +38,6 @@ class Client:
 
 if __name__ == "__main__":
     path = sys.argv[1]
-    client = Client()
+    client = DisplayClient()
     client.connect()
     client.draw_image(path)
