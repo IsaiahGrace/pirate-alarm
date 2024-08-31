@@ -2,7 +2,10 @@
 Description=Turn off st7789 backlight
 
 [Service]
+Type=oneshot
+RemainAfterExit=yes
 ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pirate-alarm/src/backlight.py
+WorkingDirectory=/home/isaiah/repos/pirate-alarm/src
 Restart=no
 
 [Install]

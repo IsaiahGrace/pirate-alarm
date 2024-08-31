@@ -1,0 +1,10 @@
+[Unit]
+Description=Display server and compositor for the st7789 screen
+After=irg-backlight.service
+
+[Service]
+ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pirate-alarm/src/displayServer.py
+WorkingDirectory=/home/isaiah/repos/pirate-alarm/src
+
+[Install]
+WantedBy=multi-user.target

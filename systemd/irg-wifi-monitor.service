@@ -1,0 +1,9 @@
+[Unit]
+Description=WiFi monitor icon
+
+[Service]
+ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pirate-alarm/src/wifiMonitor.py
+WorkingDirectory=/home/isaiah/repos/pirate-alarm/src
+
+[Install]
+WantedBy=multi-user.target
