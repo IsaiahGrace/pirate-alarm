@@ -39,7 +39,7 @@ class Display:
         self.screen = SCREEN_BACKEND(
             height=HEIGHT,
             width=WIDTH,
-            rotation=0,  # TODO: Ensure this is correct
+            rotation=270,
             port=0,
             cs=SCREEN_CS,
             dc=9,
