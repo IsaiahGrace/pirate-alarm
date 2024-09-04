@@ -1,0 +1,9 @@
+[Unit]
+Description=Button gpio server
+
+[Service]
+ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pirate-alarm/src/buttonServer.py
+WorkingDirectory=/home/isaiah/repos/pirate-alarm/src
+
+[Install]
+WantedBy=multi-user.target
