@@ -1,11 +1,7 @@
 from rich import print
 from rich.logging import RichHandler
-import json
 import logging
-import os
 import platform
-import threading
-import time
 import zmq
 import zmqNet
 
@@ -16,12 +12,14 @@ machine = platform.machine()
 if machine == "x86_64" or machine == "AMD64":
     from buttonRaylib import ButtonEvents
 else:
-    from buttonRaylib import ButtonEvents
+    from buttonGpio import ButtonEvents
 
 
 class ButtonServer:
     def __init__(self):
-        pass
+        self.context = zmq.Context()
+        self.socket = self.context.socket(zmq.PUB)
+        self.socket.bind(zmqNet.BUTTON_PUB)
 
     def run(self):
         with ButtonEvents(
@@ -33,20 +31,25 @@ class ButtonServer:
             buttons.run()
 
     def on_press_A(self):
-        pass
+        logger.info("A button pressed!")
+        self.socket.send("A".encode("utf-8"))
 
     def on_press_B(self):
-        pass
+        logger.info("B button pressed!")
+        self.socket.send("B".encode("utf-8"))
 
     def on_press_X(self):
-        pass
+        logger.info("X button pressed!")
+        self.socket.send("X".encode("utf-8"))
 
     def on_press_Y(self):
-        pass
+        logger.info("Y button pressed!")
+        self.socket.send("Y".encode("utf-8"))
 
 
 def main():
-    pass
+    button_server = ButtonServer()
+    button_server.run()
 
 
 if __name__ == "__main__":

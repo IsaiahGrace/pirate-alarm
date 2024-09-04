@@ -4,7 +4,7 @@ set -e
 
 # If running on my desktop, copy the files to my Pi
 if ! cat /proc/cpuinfo | grep "Raspberry Pi"; then
-    rsync -avP ../pirate-alarm kericho:~/repos --exclude venv
+    rsync -avP ../pirate-alarm kericho:~/repos --exclude venv --exclude __pycache__
     ssh kericho "cd ~/repos/pirate-alarm && ./setup.zsh"
     exit
 fi
