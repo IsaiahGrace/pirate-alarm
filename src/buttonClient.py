@@ -32,5 +32,8 @@ def log_button_events():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[RichHandler(rich_tracebacks=True)],
+    )
     log_button_events()

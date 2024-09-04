@@ -53,6 +53,9 @@ class WifiMonitor:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[RichHandler(rich_tracebacks=True)],
+    )
     monitor = WifiMonitor()
     monitor.run()

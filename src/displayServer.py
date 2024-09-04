@@ -262,7 +262,6 @@ class Server:
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()])
     with Display() as display:
         with Compositor(display) as compositor:
             with Server(compositor) as server:
@@ -270,4 +269,8 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.DEBUG,
+        handlers=[RichHandler(rich_tracebacks=True)],
+    )
     main()
