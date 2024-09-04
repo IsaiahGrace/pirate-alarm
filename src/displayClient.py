@@ -36,6 +36,9 @@ class DisplayClient:
     def icon_bar_color(self, red, green, blue, alpha):
         return self.send_command({"command": "icon_bar_color", "r": red, "g": green, "b": blue, "a": alpha})
 
+    def backlight(self):
+        return self.send_command({"command": "backlight"})
+
 
 if __name__ == "__main__":
     path = sys.argv[1]

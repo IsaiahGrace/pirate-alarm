@@ -177,10 +177,11 @@ class Server:
         self.socket = self.context.socket(zmq.REP)
 
         self.commands_schema = {
+            "backlight": (self.cmd_backlight, {}),
             "clear_icon": (self.cmd_clear_icon, {"icon": str}),
             "draw_icon": (self.cmd_draw_icon, {"icon": str}),
-            "icon_bar_color": (self.cmd_icon_bar_color, {"r": int, "g": int, "b": int, "a": int}),
             "draw_image": (self.cmd_draw_image, {"relative_path": str}),
+            "icon_bar_color": (self.cmd_icon_bar_color, {"r": int, "g": int, "b": int, "a": int}),
         }
         self.icon_types = {
             "alarm": {"check", "none", "note", "off", "plus"},
@@ -259,6 +260,9 @@ class Server:
 
     def cmd_icon_bar_color(self, cmd):
         self.compositor.icon_bar_color(cmd["r"], cmd["g"], cmd["b"], cmd["a"])
+
+    def cmd_backlight(self, cmd):
+        self.compositor.redraw()
 
 
 def main():
