@@ -1,6 +1,5 @@
 from rich import print
 import json
-import os
 import sys
 import zmq
 import zmqNet

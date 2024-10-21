@@ -1,11 +1,6 @@
-from PIL import Image, ImageColor
 from rich import print
 from rich.logging import RichHandler
-import json
 import logging
-import os
-import threading
-import time
 import zmq
 import zmqNet
 
