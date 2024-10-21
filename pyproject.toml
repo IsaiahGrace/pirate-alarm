@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 120
-target-version = ['py39']
+target-version = ['py312']
 include = '\.pyi?$'
 extend-exclude = '''
 # A regex preceded with ^/ will apply only to files and directories
@@ -9,6 +9,6 @@ extend-exclude = '''
 '''
 
 [tool.pyright]
-pythonVersion = '3.9'
-venvPath = ''
-venv = ''
+pythonVersion = '3.12'
+venvPath = '.'
+venv = '.venv'
