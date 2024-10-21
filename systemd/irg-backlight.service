@@ -9,4 +9,4 @@ WorkingDirectory=/home/isaiah/repos/pirate-alarm/src
 Restart=no
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target

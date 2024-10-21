@@ -7,4 +7,4 @@ ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pir
 WorkingDirectory=/home/isaiah/repos/pirate-alarm/src
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
