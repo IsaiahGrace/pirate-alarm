@@ -39,7 +39,9 @@ done
 if $updated; then
     sudo systemctl daemon-reload
     for unit in *; do
-        sudo systemctl enable $unit
+        if cat $unit | grep "^[Install]$"; then
+            sudo systemctl enable $unit
+        fi
     done
 fi
 popd

@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily timer for working days
+
+[Timer]
+OnCalendar=Mon..Fri 7:45:00
+Unit=irg-alarm@workday.service
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,6 @@
+[Unit]
+Description=Button gpio server
+
+[Service]
+ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pirate-alarm/src/alarm.py %i
+WorkingDirectory=/home/isaiah/repos/pirate-alarm/src

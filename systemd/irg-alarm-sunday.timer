@@ -1,0 +1,9 @@
+[Unit]
+Description=Weekly timer for Quaker meeting
+
+[Timer]
+OnCalendar=Sun 9:00:00
+Unit=irg-alarm@sunday.service
+
+[Install]
+WantedBy=default.target
