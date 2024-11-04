@@ -9,6 +9,7 @@ import logging
 import os
 import subprocess
 import sys
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,16 @@ class Alarm:
 
     def trigger(self):
         logger.info("Alarm triggered")
-        self.display.draw_image(self.config.image)
+        if os.path.isdir(self.config.image):
+            self.display.draw_image(
+                self.config.image
+                + "/"
+                + random.choice(
+                    list(filter(lambda i: i.endswith(".png"), os.listdir(self.config.image))),
+                ),
+            )
+        else:
+            self.display.draw_image(self.config.image)
         play = subprocess.Popen(["play", "--no-show-progress", self.config.sound])
 
         while play.poll() is None:

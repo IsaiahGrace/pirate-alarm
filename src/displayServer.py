@@ -245,17 +245,20 @@ class Server:
 
     def cmd_draw_icon(self, cmd):
         category, symbol = cmd["icon"].split("_")
-        assert symbol in self.icon_types[category]
+        if symbol not in self.icon_types[category]:
+            raise ValueError(f"{symbol} not in {self.icon_types[category]}")
         self.compositor.draw_icon(category, symbol)
 
     def cmd_clear_icon(self, cmd):
         category, symbol = cmd["icon"].split("_")
-        assert symbol in self.icon_types[category]
+        if symbol not in self.icon_types[category]:
+            raise ValueError(f"{symbol} not in {self.icon_types[category]}")
         self.compositor.clear_icon(category, symbol)
 
     def cmd_draw_image(self, cmd):
         image = os.path.abspath(cmd["relative_path"])
-        assert os.path.exists(image)
+        if not os.path.exists(image):
+            raise ValueError(f"Image file not found: {image}")
         self.compositor.draw_image(image)
 
     def cmd_icon_bar_color(self, cmd):
