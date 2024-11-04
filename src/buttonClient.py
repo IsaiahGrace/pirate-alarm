@@ -14,9 +14,12 @@ class ButtonClient:
         self.socket.connect(zmqNet.BUTTON_SUB)
         self.socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
-    def get_button_event(self):
-        msg = self.socket.recv().decode()
-        return msg
+    def get_button_event(self, blocking=True):
+        flags = 0 if blocking else zmq.NOBLOCK
+        try:
+            return self.socket.recv(flags=flags).decode()
+        except zmq.error.Again:
+            return None
 
 
 def log_button_events():

@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from rich import print
 from rich.logging import RichHandler
+import buttonClient
 import displayClient
 import logging
 import os
@@ -35,10 +36,28 @@ class Alarm:
         self.display = displayClient.DisplayClient()
         self.display.connect()
         self.config = alarm_types[alarm_name]
+        self.buttons = buttonClient.ButtonClient()
 
     def trigger(self):
+        logger.info("Alarm triggered")
         self.display.draw_image(self.config.image)
-        subprocess.run(["play", "--no-show-progress", self.config.sound])
+        play = subprocess.Popen(["play", "--no-show-progress", self.config.sound])
+
+        while play.poll() is None:
+            if self.buttons.get_button_event(blocking=False) in ("A", "B", "X", "Y"):
+                self.snooze()
+                play.kill()
+
+    def snooze(self):
+        logger.info("Alarm snoozed")
+        subprocess.run(
+            [
+                "systemd-run",
+                f"--on-active={self.config.snooze_min * 60}",
+                "--unit",
+                "irg-alarm@workday.service",
+            ]
+        )
 
 
 if __name__ == "__main__":
