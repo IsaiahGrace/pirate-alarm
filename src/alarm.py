@@ -54,8 +54,11 @@ class Alarm:
         play = subprocess.Popen(["play", "--no-show-progress", self.config.sound])
 
         while play.poll() is None:
-            if self.buttons.get_button_event(blocking=False) in ("A", "B", "X", "Y"):
+            button = self.buttons.get_button_event(blocking=False)
+            if button in ("A", "B"):
                 self.snooze()
+                play.kill()
+            elif button in ("X", "Y"):
                 play.kill()
 
     def snooze(self):
