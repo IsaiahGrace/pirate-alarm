@@ -1,0 +1,9 @@
+[Unit]
+Description=VeSync Humidifier control
+
+[Service]
+ExecStart=/home/isaiah/repos/pirate-alarm/venv/bin/python /home/isaiah/repos/pirate-alarm/src/humidifier.py
+WorkingDirectory=/home/isaiah/repos/pirate-alarm/src
+
+[Install]
+WantedBy=default.target
