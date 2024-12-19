@@ -71,21 +71,14 @@ class Humidifier:
         self.set_display()
 
     def log(self):
-        try:
-            r = requests.get("https://wttr.in?format=%h,%t")
-            h, t = r.text.split(",")
-            h = int(h.removesuffix("%"))
-            t = int(t.removesuffix("°F"))
-        except Exception as e:
-            print(e)
-            h = None
-            t = None
+        r = requests.get("https://api.weather.gov/stations/KDCA/observations/latest")
+        kdca = json.loads(r.text)
 
         log_entry = {
             "humidifier.is_on": self.hw.is_on,
             "indoor.humidity": self.hw.humidity,
-            "outdoor.humidity": h,
-            "outdoor.temp": t,
+            "outdoor.humidity": kdca["properties"]["relativeHumidity"]["value"],
+            "outdoor.temp": kdca["properties"]["temperature"]["value"] * 9.0 / 5.0 + 32,
             "time.ctime": time.ctime(),
             "time.time": time.time(),
         }
