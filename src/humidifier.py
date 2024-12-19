@@ -3,9 +3,11 @@ from rich import print
 from rich.logging import RichHandler
 import collections
 import getpass
+import json
 import logging
 import os
 import random
+import requests
 import sys
 import time
 
@@ -51,8 +53,7 @@ class Humidifier:
         if sys.stdout.isatty():
             logger.info(f"Active: {self.hw.is_on} Humidity: {list(self.humidity)}")
 
-        with open(self.log_file, "a") as f:
-            f.write(f"{time.time()}, {self.hw.is_on}, {self.hw.humidity}\n")
+        self.log()
 
         if median < lower_limit and not self.hw.is_on:
             logger.info("Turning humidifier on.")
@@ -64,6 +65,22 @@ class Humidifier:
             self.hw.turn_off()
 
         self.set_display()
+
+    def log(self):
+        r = requests.get("https://wttr.in?format=j1")
+        weather = json.loads(r.text)
+
+        log_entry = {
+            "humidifier.is_on": self.hw.is_on,
+            "indoor.humidity": self.hw.humidity,
+            "outdoor.humidity": weather["current_condition"][0]["humidity"],
+            "outdoor.temp": weather["current_condition"][0]["temp_F"],
+            "time.ctime": time.ctime(),
+            "time.time": time.time(),
+        }
+
+        with open(self.log_file, "a") as f:
+            json.dump(log_entry, f, indent=None)
 
 
 def main():
