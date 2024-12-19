@@ -34,8 +34,12 @@ class Humidifier:
             time.sleep(60 + (random.random() * 10 - 5))
 
     def set_display(self):
+        if not self.hw.is_on:
+            return
+
         hour = time.localtime().tm_hour
-        display = self.hw.config["display"]
+        display = self.hw.details["display"]
+
         if hour >= 8 and hour < 21:
             if not display:
                 logger.info("Turning display on.")
@@ -67,20 +71,28 @@ class Humidifier:
         self.set_display()
 
     def log(self):
-        r = requests.get("https://wttr.in?format=j1")
-        weather = json.loads(r.text)
+        try:
+            r = requests.get("https://wttr.in?format=%h,%t")
+            h, t = r.text.split(",")
+            h = int(h.removesuffix("%"))
+            t = int(t.removesuffix("°F"))
+        except Exception as e:
+            print(e)
+            h = None
+            t = None
 
         log_entry = {
             "humidifier.is_on": self.hw.is_on,
             "indoor.humidity": self.hw.humidity,
-            "outdoor.humidity": weather["current_condition"][0]["humidity"],
-            "outdoor.temp": weather["current_condition"][0]["temp_F"],
+            "outdoor.humidity": h,
+            "outdoor.temp": t,
             "time.ctime": time.ctime(),
             "time.time": time.time(),
         }
 
         with open(self.log_file, "a") as f:
             json.dump(log_entry, f, indent=None)
+            f.write("\n")
 
 
 def main():
