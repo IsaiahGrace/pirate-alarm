@@ -71,14 +71,21 @@ class Humidifier:
         self.set_display()
 
     def log(self):
-        r = requests.get("https://api.weather.gov/stations/KDCA/observations/latest")
-        kdca = json.loads(r.text)
+        try:
+            r = requests.get("https://api.weather.gov/stations/KDCA/observations/latest")
+            kdca = json.loads(r.text)
+            h = kdca["properties"]["relativeHumidity"]["value"]
+            t = kdca["properties"]["temperature"]["value"] * 9.0 / 5.0 + 32
+        except:
+            logger.exception("Failed to get weather from weather.gov")
+            h = None
+            t = None
 
         log_entry = {
             "humidifier.is_on": self.hw.is_on,
             "indoor.humidity": self.hw.humidity,
-            "outdoor.humidity": kdca["properties"]["relativeHumidity"]["value"],
-            "outdoor.temp": kdca["properties"]["temperature"]["value"] * 9.0 / 5.0 + 32,
+            "outdoor.humidity": h,
+            "outdoor.temp": t,
             "time.ctime": time.ctime(),
             "time.time": time.time(),
         }
