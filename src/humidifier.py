@@ -13,7 +13,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
-upper_limit = 50
+upper_limit = 55
 lower_limit = 40
 
 # Documentation:
