@@ -27,6 +27,7 @@ class Humidifier:
         self.hw.turn_off()
         self.humidity = collections.deque([], maxlen=5)
         self.log_file = "/home/isaiah/vesync_log"
+        self.is_on = False
 
     def run(self):
         while True:
@@ -51,21 +52,32 @@ class Humidifier:
 
     def update(self):
         self.hw.update()
+
+        self.is_on = self.hw.is_on
+
+        if self.hw.details["water_lacks"] or self.hw.details["water_tank_lifted"]:
+            logger.warning(
+                f"Tank issue. water_lacks: {self.hw.details['water_lacks']} water_tank_lifted: {self.hw.details['water_tank_lifted']}"
+            )
+            self.is_on = False
+
         self.humidity.append(self.hw.humidity)
         median = sorted(self.humidity)[len(self.humidity) // 2]
 
         if sys.stdout.isatty():
-            logger.info(f"Active: {self.hw.is_on} Humidity: {list(self.humidity)}")
+            logger.info(f"Active: {self.is_on} Humidity: {list(self.humidity)}")
 
         self.log()
 
-        if median < lower_limit and not self.hw.is_on:
-            logger.info("Turning humidifier on.")
+        if self.hw.humidity < lower_limit and not self.is_on:
+            if sys.stdout.isatty():
+                logger.info("Turning humidifier on.")
             self.hw.set_mist_level(9)
             self.hw.turn_on()
 
-        if median > upper_limit and self.hw.is_on:
-            logger.info("Turning humidifier off.")
+        if median > upper_limit and self.is_on:
+            if sys.stdout.isatty():
+                logger.info("Turning humidifier off.")
             self.hw.turn_off()
 
         self.set_display()
@@ -82,7 +94,7 @@ class Humidifier:
             t = None
 
         log_entry = {
-            "humidifier.is_on": self.hw.is_on,
+            "humidifier.is_on": self.is_on,
             "indoor.humidity": self.hw.humidity,
             "outdoor.humidity": h,
             "outdoor.temp": t,
