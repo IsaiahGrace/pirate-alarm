@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Config:
-    image: str = "../images/cat.jpg"
-    sound: str = "../sounds/chirp.mp3"
+    image: str = "/home/isaiah/images"
+    sound: str = "/home/isaiah/Sleepless Night 🌙.mp3"
     snooze_min: int = 5
     snooze_reps: int = 3
 
@@ -63,6 +63,8 @@ class Alarm:
 
     def snooze(self):
         logger.info("Alarm snoozed")
+        # TODO: The Snooze only works once, It's a systemd thing.
+        # Perhaps I should just allow one snooze here in the code.
         subprocess.run(
             [
                 "systemd-run",
