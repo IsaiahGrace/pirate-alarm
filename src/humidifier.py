@@ -110,7 +110,7 @@ class Humidifier:
 def main():
     password_file = "/home/isaiah/.config/vesync_password"
     if not os.path.exists(password_file):
-        print("[bold red]VeSync password needed for Irgkenya4@gmail.com[/bold red]")
+        print("[bold red]VeSync password needed for vesync.doable473@passmail.net[/bold red]")
         if sys.stdout.isatty():
             with open(password_file, "w") as f:
                 password = getpass.getpass()
@@ -121,7 +121,7 @@ def main():
     with open(password_file) as f:
         password = f.read()
 
-    manager = VeSync("Irgkenya4@gmail.com", password)
+    manager = VeSync("vesync.doable473@passmail.net", password)
     if not manager.login():
         os.unlink(password_file)
         raise RuntimeError("Login failed. Run again to set password")
