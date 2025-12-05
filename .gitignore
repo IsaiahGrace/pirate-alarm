@@ -2,3 +2,4 @@ __pycache__
 src/screen-update.png
 md5sums
 venv
+vesync_log*
